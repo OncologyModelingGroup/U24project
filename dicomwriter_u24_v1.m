@@ -49,7 +49,7 @@ elseif strcmp(specs.SeriesDescription,'ktrans (1/min)')
     ww = 0.6691;
     
 elseif strcmp(specs.SeriesDescription,'ve')
-     SN = 4;
+    SN = 4;
     data(data>1) = 1;
     data(data<0) = 0;
     data = data*1e5;
@@ -57,7 +57,7 @@ elseif strcmp(specs.SeriesDescription,'ve')
     intercept = 0;
     fn = 've';
     wc = .2722;
-    ww = 0.6691;   
+    ww = 0.6691;
     
 elseif strcmp(specs.SeriesDescription,'kep (1/min)')
     SN = 5;
@@ -82,8 +82,6 @@ elseif strcmp(specs.SeriesDescription,'T1wDCE')
     fn = 'T1wDCE';
     intercept = 0;
     slope = 1;
-%end
-
 elseif strcmp(specs.SeriesDescription,'SER')
     SN = 7;
     %sz = size(data,3);
@@ -102,6 +100,25 @@ end
 
 
 % (2) Write out dicom images
+%{
+for z = 1:size(data,3)
+    dicomwrite(uint16(data(:,:,z)),[save_loc specs.PatientName '_' fn '_' num2str(z) '.dcm'],'PatientName',...
+        specs.PatientName,'PatientID',specs.PatientID, 'StudyDate',specs.StudyDate,'StudyInstanceUID',specs.StudyInstanceUID...
+        ,'Modality','MR','SeriesDescription',specs.SeriesDescription,...
+        'StudyDescription',specs.StudyDescription,'SliceThickness',specs.res(3),'PixelSpacing',...
+        specs.res(1:2),'SeriesInstanceUID',specs.SeriesInstance...
+        ,'PatientBirthDate',specs.birth ,'WindowCenter',wc,'WindowWidth',ww,...
+        'ImagesInAcquisition',sz,'InStackPositionNumber',z,'InstanceNumber',z,...
+        'SeriesNumber',SN,'RescaleIntercept',intercept,...
+        'RescaleSlope',slope,'SliceLocation',z*specs.res(3),...
+        'SOPClassUID','1.2.840.10008.5.1.4.1.1.4.1',...
+        'ImageOrientationPatient',specs.orient,...
+        'FrameOfReferenceUID',specs.SeriesInstance,...
+        'ImagePositionPatient',[specs.patient_pos]+[0 (z-1)*specs.res(3) 0],...
+        'CreateMode','Copy');
+end
+
+%}
 for z = 1:size(data,3)
     dicomwrite(uint16(data(:,:,z)),[save_loc specs.PatientName '_' fn '_' num2str(z) '.dcm'],'PatientName',...
         specs.PatientName,'PatientID',specs.PatientID, 'StudyDate',specs.StudyDate,'StudyInstanceUID',specs.StudyInstanceUID...
@@ -110,14 +127,27 @@ for z = 1:size(data,3)
         specs.res(1:2),'SeriesInstanceUID',specs.SeriesInstance...
         ,'PatientBirthDate',specs.birth ,'WindowCenter',wc,'WindowWidth',ww,...
         'ImagesInAcquisition',sz,'InstanceNumber',z,...
-        'SeriesNumber',SN,'SliceLocation',specs.position(3)+(z-1)*specs.res(3),'PatientPosition',specs.patient_pos,...
-        'SOPClassUID','1.2.840.10008.5.1.4.1.1.4',...
+        'SeriesNumber',SN,'RescaleIntercept',intercept,...
+        'RescaleSlope',slope,'SliceLocation',specs.position(3)+(z-1)*specs.res(3),...
+        'SOPClassUID','1.2.840.10008.5.1.4.1.1.4',...        % changed SOP class to standard MR instead of advanced
         'ImageOrientationPatient',specs.orient,...
         'FrameOfReferenceUID',specs.SeriesInstance,...
         'ImagePositionPatient',[specs.position]+[0 0 (z-1)*specs.res(3)],...
         'CreateMode','Copy',...
-        'PatientSex','F');     
+        'PatientSex','F');
+    
+        %{
+         DAH 1/22/2021 notes:  The two main things i changed were
+         "Image Position Patient" which use to be  
+         'ImagePositionPatient',[specs.patient_pos]+[0 (z-1)*specs.res(3) 0],...
+        
+          Deleted
+         'PatientPosition',specs.patient_pos,...
+        
+        %}
 end
+
+
 
 
 % (3) Write out contours
@@ -134,8 +164,8 @@ segment_info.SegmentedPropertyTypeCodeSequence.CodingSchemeDesignator='SRT';
 segment_info.SegmentedPropertyTypeCodeSequence.CodeMeaning='Tissue';
 
 
-% clc
-try  
+clc
+try
     delete([save_loc specs.PatientName '_' fn '_tumor.dcm'])
 end
 write_seg_status = write_DSO(save_loc,[specs.PatientName fn '_tumor'], mask, save_loc, false, false, segment_info);
