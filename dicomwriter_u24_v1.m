@@ -197,5 +197,5 @@ clc
 try
     delete([save_loc specs.PatientName '_' fn '_tumor.dcm'])
 end
-write_seg_status = write_DSO(save_loc,[specs.PatientName fn '_tumor'], mask, save_loc, false, false, segment_info);
+write_seg_status = write_DSO(save_loc,[specs.PatientName fn '_tumor'], logical(mask), save_loc, false, false, segment_info);
 
