@@ -20,7 +20,7 @@ specs.study_time = datestr(data.dce.params.ACQ_time,'HHMMSS.FFF');
 specs.orient = data.dce.visu.VisuCoreOrientation(1:6);
 specs.position= data.dce.visu.VisuCorePosition;            
 specs.SeriesInstance = dicomuid;
-ktrans = data.results.DCE.ktrans;
+ktrans = data.results.DCE.ktrans(:,:,:,1);
 save_loc = [pwd '/pDCM/' pid '/v' datestr(data.date,'YYYYmmdd') '/ktrans/'];
 mkdir(save_loc)
 dicomwriter_u24_v1(ktrans,specs,data.tumor,save_loc,[],clinical)
@@ -31,7 +31,7 @@ specs.study_time = datestr(data.dce.params.ACQ_time,'HHMMSS.FFF');
 specs.orient = data.dce.visu.VisuCoreOrientation(1:6);
 specs.position = data.dce.visu.VisuCorePosition;
 specs.SeriesInstance = dicomuid;
-ve = data.results.DCE.ve;
+ve = data.results.DCE.ve(:,:,:,1);
 save_loc = [pwd '/pDCM/' pid '/v' datestr(data.date,'YYYYmmdd') '/ve/'];
 mkdir(save_loc)
 dicomwriter_u24_v1(ve,specs,data.tumor,save_loc,[],clinical)
