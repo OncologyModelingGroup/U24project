@@ -14,7 +14,7 @@
 % updated 09-DEC-2020, used for images uploaded on 09-DEC-2020
 
 
-%clear; clc; close all;
+clear; clc; close all;
 
 visitname = 'v2_06192006';
 
@@ -33,10 +33,12 @@ visitname = 'v2_06192006';
 % One file with DYN_eTHRIVEHRSENSE (original DCE-MRI) struct, and dicominfo
 % struct info1, registered image data struct DCE_reg, FCM selected struct 
 % TumorROI and drawn margin struct TumorMargin, and computed SER struct:
-% load('/Users/jd45888/data/TCIA/TCGA/TCGA-BRCA/TCGA-BRCA/TCGA-OL-A66N/Processed/case_06192006_DCEMRI_SER_Structures');
+% load from current dir
+load('case_06192006_DCEMRI_SER_Structures');
 
 % Edit this for location of output DICOM files:
-savedir = '/Users/ealkim/Downloads/case_06192006_SER_DSO_emel/';
+% folder needs to be created before
+savedir = 'case_06192006_SER_DSO_emel/';
 
 
 %%
@@ -101,7 +103,7 @@ data = squeeze(DCE_reg.Data(:,:,3,:));
 
 seriesDir = savedir;
 
-dicomwriter_u24_v1(data,specs,seg_mask,savedir,info1);
+dicomwriter_u24_v1(data,specs,seg_mask,savedir,info1,true);
 
 
 %%  Now test loading and isdicom and load/display to compare:

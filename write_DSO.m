@@ -162,7 +162,6 @@ else % try getting from perframe
         end
     end
 end
-%info_mask.SharedFunctionalGroupsSequence.Item_1.SegmentIdentificationSequence.Item_1.ReferencedSegmentNumber=1;
 if insCount>1
     % add all slices to referenced slices!
     for i=1:size(maxes,3)
@@ -176,10 +175,7 @@ if insCount>1
         slice_info=slices(i);
         ib1=i-startIndex+1;
         item_name=['Item_' num2str(ib1)];
-        %info_mask.ReferencedSeriesSequence.Item_1.ReferencedInstanceSequence.(item_name).ReferencedSOPClassUID=slice_info.SOPClassUID;
-        %info_mask.ReferencedSeriesSequence.Item_1.ReferencedInstanceSequence.(item_name).ReferencedSOPInstanceUID=slice_info.SOPInstanceUID;
         
-        info_mask.PerFrameFunctionalGroupsSequence.(item_name).SegmentIdentificationSequence.Item_1.ReferencedSegmentNumber=1; %added 08/27/20
         info_mask.PerFrameFunctionalGroupsSequence.(item_name).DerivationImageSequence.Item_1.SourceImageSequence.Item_1.ReferencedSOPClassUID=slice_info.SOPClassUID;
         info_mask.PerFrameFunctionalGroupsSequence.(item_name).DerivationImageSequence.Item_1.SourceImageSequence.Item_1.ReferencedSOPInstanceUID=slice_info.SOPInstanceUID;
         info_mask.PerFrameFunctionalGroupsSequence.(item_name).DerivationImageSequence.Item_1.SourceImageSequence.Item_1.PurposeOfReferenceCodeSequence.Item_1.CodeValue='121322';
@@ -206,6 +202,8 @@ if insCount>1
             end
             
         end
+        info_mask.PerFrameFunctionalGroupsSequence.(item_name).SegmentIdentificationSequence.Item_1.ReferencedSegmentNumber=1; %added 08/27/20
+        
     end
 else %just one instance should be multiframe
     info=refSlice;%first image
@@ -300,7 +298,7 @@ end
 info_mask.Modality='SEG';
 info_mask.Manufacturer='UT Austin';
 
-info_mask.ManufacturerModelName= 'UT Austin/Matlab';
+info_mask.ManufacturerModelName= 'UT Austin Matlab';
 info_mask.DeviceSerialNumber='SN123456';
 info_mask.SoftwareVersion='1.0';
 info_mask.StudyInstanceUID=info.StudyInstanceUID;
@@ -323,41 +321,25 @@ info_mask.InstanceNumber= 1;
 info_mask.FrameOfReferenceUID= info.FrameOfReferenceUID;
 info_mask.PositionReferenceIndicator= '';
 
-% JCD per email from EA on 03-Dec-09:
 dimorgid = dicomuid;
 info_mask.DimensionOrganizationSequence.Item_1.DimensionOrganizationUID= dimorgid;
+info_mask.DimensionIndexSequence.Item_1.DimensionOrganizationUID=dimorgid;
 info_mask.DimensionIndexSequence.Item_1.DimensionIndexPointer=uint16([32 36950]);%Not writing pointers for now
 info_mask.DimensionIndexSequence.Item_1.FunctionalGroupPointer=uint16([32 37137]);%Not writing pointers for now
 info_mask.DimensionIndexSequence.Item_1.DimensionDescriptionLabel='Stack ID';
-info_mask.DimensionIndexSequence.Item_1.DimensionOrganizationUID=dimorgid;
+info_mask.DimensionIndexSequence.Item_2.DimensionOrganizationUID=dimorgid;
 info_mask.DimensionIndexSequence.Item_2.DimensionIndexPointer=uint16([32 36951]);%Not writing pointers for now
 info_mask.DimensionIndexSequence.Item_2.FunctionalGroupPointer=uint16([32 37137]);%Not writing pointers for now
 info_mask.DimensionIndexSequence.Item_2.DimensionDescriptionLabel='In-Stack Position Number';
-info_mask.DimensionIndexSequence.Item_2.DimensionOrganizationUID=dimorgid;
+info_mask.DimensionIndexSequence.Item_3.DimensionOrganizationUID=dimorgid;
 info_mask.DimensionIndexSequence.Item_3.DimensionIndexPointer=uint16([98 11]);%Not writing pointers for now
 info_mask.DimensionIndexSequence.Item_3.FunctionalGroupPointer=uint16([98 10]);%Not writing pointers for now
 info_mask.DimensionIndexSequence.Item_3.DimensionDescriptionLabel='Referenced Segment Number';
-info_mask.DimensionIndexSequence.Item_3.DimensionOrganizationUID=dimorgid;
-
-
-% JCD commented following per email from EA on 03-Dec-09:
-% info_mask.DimensionOrganizationSequence.Item_1.DimensionOrganizationUID= dicomuid;
-% info_mask.DimensionIndexSequence.Item_1.DimensionIndexPointer=uint16([32 36950]);%Not writing pointers for now
-% info_mask.DimensionIndexSequence.Item_1.FunctionalGroupPointer=uint16([32 37137]);%Not writing pointers for now
-% info_mask.DimensionIndexSequence.Item_1.DimensionDescriptionLabel='Stack ID';
-% info_mask.DimensionIndexSequence.Item_2.DimensionIndexPointer=uint16([32 36951]);%Not writing pointers for now
-% info_mask.DimensionIndexSequence.Item_2.FunctionalGroupPointer=uint16([32 37137]);%Not writing pointers for now
-% info_mask.DimensionIndexSequence.Item_2.DimensionDescriptionLabel='In-Stack Position Number';
-% info_mask.DimensionIndexSequence.Item_3.DimensionIndexPointer=uint16([98 11]);%Not writing pointers for now
-% info_mask.DimensionIndexSequence.Item_3.FunctionalGroupPointer=uint16([98 10]);%Not writing pointers for now
-% info_mask.DimensionIndexSequence.Item_3.DimensionDescriptionLabel='Referenced Segment Number';
-
-
 info_mask.SamplesPerPixel= 1;
 info_mask.PhotometricInterpretation= 'MONOCHROME2';
-info_mask.NumberOfFrames= size(Seg_mask,1);
-info_mask.Rows= size(Seg_mask,2);
-info_mask.Columns= size(Seg_mask,3);
+info_mask.NumberOfFrames= size(Seg_mask,3);
+info_mask.Rows= size(Seg_mask,1);
+info_mask.Columns= size(Seg_mask,2);
 if isFractional==false
     info_mask.BitsAllocated= 1;
     info_mask.BitsStored= 1;
@@ -417,7 +399,6 @@ info_mask.ContentDescription=[Seg_name 'segmentation'];
 info_mask.SeriesDescription=[Seg_name ' segmentation'];
 
 file_name=[outputDir regexprep(Seg_name,'\W','_') '.dcm'];
-file_name
 if exist(file_name,'file')==2
     disp('There is file with the same name already. Appending timestamp');
     t = datetime('now','Format','yyyyMMddHHmmss');
