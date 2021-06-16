@@ -12,19 +12,10 @@ clear; clc; close all;
 visit = 1;
 patientID = 'SH_003';
 
-% dir_processed = '/Users/jd45888/data/bc_data/UTms_bcdata/Pipeline_Processed_Data/';
-% dir_scandata = sprintf('%s%s/v%d/scandata',dir_processed,patientID,visit);
-% dir_para = sprintf('%s%s/v%d/para/',dir_processed,patientID,visit);
-% load(fullfile(dir_scandata,sprintf('%s_v%d_DCE_RigReg.mat',patientID,visit)));  % for DCE_struct.dcm_header
-% load(fullfile(dir_para,sprintf('%s_v%d_Tumor_ROI_fcm_SI_Radiologist.mat',patientID,visit)));  % for Tumor_ROI_struct.fcm_ROI
-% load(fullfile(dir_para,sprintf('%s_v%d_SER_BAT.mat',patientID,visit)));  % for SER struct
-
 % Edit this for location of output DICOM files:
-%savedir = '/Users/jd45888/data/Baylor_McNair_U24_development/Testing_UTA_Data/';	
 savedir = 'Testing_UTA_Data/';
 
 %save(fullfile(savedir,'SH_003_v1_DSO_matlabdata_try1.mat'),'DCE_struct','SER_struct','Tumor_ROI_struct','patientID','visit');
-%load('/Users/jd45888/data/Baylor_McNair_U24_development/Testing_UTA_Data/SH_003_v1_DSO_matlabdata_try1.mat');
 load('SH_003_v1_DSO_matlabdata_try1.mat');
 
 
