@@ -59,13 +59,32 @@ specs.birth = '19990101';  % just set a date (needed by save function)
 specs.res = [info1.PixelSpacing' info1.SliceThickness];  %UT data spacing same as thickness
 specs.SeriesInstance = dicomuid();
 
-% in the below for TCIA data the 3 is a time index:
-% data = squeeze(DCE_reg.Data(:,:,3,:));
-ims_one_timesample = squeeze(DCE_reg_ims(:,:,:,approx_peak_index));
+SERmap = SER_struct.maps.SER_clin;
 
-seriesDir = savedir;
+%seriesDir = savedir;
+save_loc = [savedir patientID '/v' num2str(visit) '/SER/'];
+if exist(save_loc)~=7
+    [status, msg, msgID] = mkdir(save_loc);
+end
 
 % dicomwriter_u24_v1(data,specs,seg_mask,savedir,info1);
 % May 12, 2021 Emel added new parameter (true) at the end for clinical
-dicomwriter_u24_v1(ims_one_timesample,specs,seg_mask,savedir,info1,true);
+dicomwriter_u24_v1(SERmap,specs,seg_mask,save_loc,info1,true);
 
+%%
+%
+% ADC map:
+
+specs.SeriesDescription = 'ADC (um^2/ms)';
+ADCmap = ADC_struct.ADC_filtered;
+
+%seriesDir = savedir;
+save_loc = [savedir patientID '/v' num2str(visit) '/ADC/'];
+if exist(save_loc)~=7
+    [status, msg, msgID] = mkdir(save_loc);
+end
+
+% dicomwriter_u24_v1(data,specs,seg_mask,savedir,info1,clinical); % new
+% flag for clinical data
+clinical = 1;
+dicomwriter_u24_v1(ADCmap,specs,seg_mask,save_loc,info1,clinical);
