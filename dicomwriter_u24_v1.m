@@ -1,4 +1,4 @@
-function dicomwriter_u24_v1(data,specs,mask,save_loc,info1,clinical)
+function dicomwriter_u24_v1(data,specs,mask,save_loc,clinical)
 %{
 data = image map you want to write as a dicom
 specs = all of the dicomheader information that needs to be written
@@ -13,15 +13,23 @@ save_loc = directory where you want to save files
 warning off
 [sy,sx,sz] = size(data);
 
+fprintf('Did you remember to delete the folder for any previous saves \n');
+fprintf(' of clinical data?  Re-running without deleting can cause a \n');
+fprintf(' missing position dicom field error. \n\n (hit any key to continue)\n\n');
+pause
+
 %(1) Select image type
-if strcmp(specs.SeriesDescription,'ADC (um^2/ms)')
+if strcmp(specs.SeriesDescription,'ADC (um^2/ms)')   
     SN = 1;
-    data(data>3.5e-3) = 3.5e-3;
+%     data(data>3.5e-3) = 3.5e-3;  % This block changed by JCD 6/17/2022
+%                                  % for BMMR2 images
+%     data(data<0) = 0;
+%     data = data*(1e6);
+    data(data>3.5e3) = 3.5e3;
     data(data<0) = 0;
-    data = data*(1e6);
-    slope = 1e-3;
-    intercept = 0;
     
+    slope = 1e-3;
+    intercept = 0;  
     fn = 'ADC_';
     wc = 1.75;
     ww = 3.5;
@@ -82,20 +90,30 @@ elseif strcmp(specs.SeriesDescription,'T1wDCE')
     fn = 'T1wDCE';
     intercept = 0;
     slope = 1;
+
 elseif strcmp(specs.SeriesDescription,'SER')
     SN = 7;
+    fn = 'SER_';
+    mask(isnan(mask)) = 0;
+    data = data*1e3;
+    slope = 1e-3;
+    intercept = 0;
+%     wc = 0.6;
+%     ww = 1.2;
+    wc = 1.2;
+    ww = 2.4;
+
+elseif strcmp(specs.SeriesDescription,'HRT1w')
+    SN = 8;
     %sz = size(data,3);
     %noise = data(1:10,1:10,ceil(sz/2)-1:ceil(sz/2)+1); noise = mean(noise(:));
     %d2 = data(:,:,ceil(sz/2)-1:ceil(sz/2)+1);
     %histogram(d2(d2(:)>5*noise))
     ww = max(data(:))-min(data(:));
     wc = (ww/2)+min(data(:));
-    fn = 'SER_';
-    mask(isnan(mask)) = 0;
-    slope = 1;
+    fn = 'HRT1w';
     intercept = 0;
-    ww = max(data(:))-min(data(:));
-    wc = (ww/2)+min(data(:));
+    slope = 1;
 end
 
 
@@ -201,7 +219,7 @@ segment_info.SegmentedPropertyTypeCodeSequence.CodingSchemeDesignator='SRT';
 segment_info.SegmentedPropertyTypeCodeSequence.CodeMeaning='Tissue';
 
 
-clc
+% clc
 try
     delete([save_loc specs.PatientName '_' fn '_tumor.dcm'])
 end
