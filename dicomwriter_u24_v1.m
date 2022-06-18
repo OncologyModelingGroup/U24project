@@ -8,21 +8,33 @@ save_loc = directory where you want to save files
 
 % cb: David A Hormuth II
 % co: 08/28/2020
+%
+% edited by Julie DiCarlo 06/17/2022
+% 
 % Purpose: For writing dicom images and contours for Epad
 
 warning off
 [sy,sx,sz] = size(data);
 
+% JCD: initially put a warning in since running code to write the same DSO
+% files more than once with existing saved files results in a hard to
+% figure out error regarding a missing position dicom field (but this goes
+% away when you start with nothing in the target directory for the DSO
+% files.  
+%
 fprintf('Did you remember to delete the folder for any previous saves \n');
 fprintf(' of clinical data?  Re-running without deleting can cause a \n');
-fprintf(' missing position dicom field error. \n\n (hit any key to continue)\n\n');
-pause
+fprintf(' missing position dicom field error. \n\n ');
+% fprintf(' missing position dicom field error. \n\n (hit any key to continue)\n\n');
+% pause
 
 %(1) Select image type
 if strcmp(specs.SeriesDescription,'ADC (um^2/ms)')   
     SN = 1;
 %     data(data>3.5e-3) = 3.5e-3;  % This block changed by JCD 6/17/2022
-%                                  % for BMMR2 images
+%                                  % for BMMR2 ADC images; the wc/ww
+%                                  % weren't scaled properly for the read
+%                                  % in map
 %     data(data<0) = 0;
 %     data = data*(1e6);
     data(data>3.5e3) = 3.5e3;
@@ -90,6 +102,7 @@ elseif strcmp(specs.SeriesDescription,'T1wDCE')
     fn = 'T1wDCE';
     intercept = 0;
     slope = 1;
+   
 
 elseif strcmp(specs.SeriesDescription,'SER')
     SN = 7;
@@ -114,6 +127,19 @@ elseif strcmp(specs.SeriesDescription,'HRT1w')
     fn = 'HRT1w';
     intercept = 0;
     slope = 1;
+    
+elseif strcmp(specs.SeriesDescription,'DWI_0_or_100')  % JCD added 6/17/2022
+    SN = 9;
+    %sz = size(data,3);
+    %noise = data(1:10,1:10,ceil(sz/2)-1:ceil(sz/2)+1); noise = mean(noise(:));
+    %d2 = data(:,:,ceil(sz/2)-1:ceil(sz/2)+1);
+    %histogram(d2(d2(:)>5*noise))
+    ww = max(data(:))-min(data(:));
+    wc = (ww/2)+min(data(:));
+    fn = 'DWI_';
+    intercept = 0;
+    slope = 1;
+    
 end
 
 
@@ -139,12 +165,12 @@ end
 %}
 if clinical == 1 % clinical sudies
     for z = 1:size(data,3)
-        spaceInc = specs.position(3)+(z-1)*specs.res(3)
-        positionInc = [specs.position]+[0 0 (z-1)*specs.res(3)]
-        isequal(specs.orient, [ 0,1,0,0,0,-1 ])
+        spaceInc = specs.position(3)+(z-1)*specs.res(3);
+        positionInc = [specs.position]+[0 0 (z-1)*specs.res(3)];
+        isequal(specs.orient, [ 0,1,0,0,0,-1 ]);
         if (isequal(specs.orient, [ 0,1,0,0,0,-1 ]))
-            spaceInc = specs.position(1)-(z-1)*specs.res(3)
-            positionInc = [specs.position]-[(z-1)*specs.res(3) 0 0]
+            spaceInc = specs.position(1)-(z-1)*specs.res(3);
+            positionInc = [specs.position]-[(z-1)*specs.res(3) 0 0];
         end
         dicomwrite(uint16(data(:,:,z)),[save_loc specs.PatientName '_' fn '_' num2str(z) '.dcm'],'PatientName',...
             specs.PatientName,'PatientID',specs.PatientID, 'StudyDate',specs.StudyDate,'StudyInstanceUID',specs.StudyInstanceUID...
